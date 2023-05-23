@@ -5,11 +5,16 @@ init(autoreset=True)
 
 
 class House:
-    def __init__(self, money=100, food=50, dirt=0):
+    def __init__(self, money, food, dirt):
         self.money = money
         self.food = food
         self.dirt = dirt
 
+    def __str__(self):
+        return f'{self.__class__.__name__} money: {self.money}, food: {self.food}, dirt: {self.dirt}'
+
+    def add_dirt(self, amount):
+        self.dirt += amount
 
 class Person:
     def __init__(self, name, house, satiety, happiness):
@@ -19,27 +24,18 @@ class Person:
         self.satiety = satiety
         self.happiness = happiness
 
-    def __str__(self):
-        return f'{self.__class__.__name__} {self.name}: satiety={self.satiety}, happiness={self.happiness}'
-
     def eat(self):
-        if self.house.food >= 30:
+        if self.house.food >= 10:
             food_to_eat = randint(10, 30)
             self.satiety += food_to_eat
             self.house.food -= food_to_eat
-        else:
-            self.buy_food()
 
-    def buy_food(self):
-        buy_food = randint(50, 100)
-        self.house.money -= buy_food
-        self.house.food += buy_food
 
     def decrease_satiety(self):
         self.satiety -= 10
 
-    def increase_happiness(self):
-        self.happiness += 10
+    def increase_happiness(self, value):
+        self.happiness += value
 
 
 class Husband(Person):
@@ -63,43 +59,55 @@ class Husband(Person):
             self.eat()
         else:
             self.decrease_satiety()
-            self.increase_happiness()
+            self.increase_happiness(20)
 
 
-class Wife:
-
-    def __str__(self):
-        return super().__str__()
-
+class Wife(Person):
     def act(self):
-        pass
+        actions = [self.eat, self.shopping, self.clean_house, self.buy_fur_coat]
+        action = actions[randint(0, 3)]
+        action()
 
     def eat(self):
-        pass
+        super().eat()
 
     def shopping(self):
-        pass
+        self.decrease_satiety()
+        buy_food = randint(10, 100)
+        if self.house.money >= buy_food:
+            self.house.money -= buy_food
+            self.house.food += buy_food
+        else:
+            super().eat()
 
     def buy_fur_coat(self):
-        pass
+        if self.house.money >= 350:
+            self.decrease_satiety()
+            self.increase_happiness(60)
+            self.house.money -= 350
 
     def clean_house(self):
-        pass
-
+        if self.satiety >= 10:
+            self.decrease_satiety()
+            self.increase_happiness(5)
+            self.house.dirt -= min(self.house.dirt, 100)
+        else:
+            super().eat()
 
 def main():
-    house = House()
+    house = House(money=100, food=50, dirt=0)
     husband = Husband("John", house, satiety=30, happiness=100)
-    # wife = Wife("Jane", house, 100, 100)
+    wife = Wife("Jane", house, satiety=30, happiness=100)
     # child = Child("Jimmy", house, 100, 100)
-
-    # family = [husband, wife, child]
 
     for day in range(365):
         print(Back.GREEN + f'================== Day {day} ==================')
-        print(Fore.LIGHTCYAN_EX + Style.BRIGHT + husband.name + f' (happiness: {husband.happiness})')
         husband.act()
-        print(Fore.BLUE + Style.BRIGHT + f'House: money={house.money}, food={house.food}\n')
+        wife.act()
+        house.add_dirt(5)
+        print(Fore.LIGHTCYAN_EX + Style.BRIGHT + husband.name + f' (happiness: {husband.happiness}, {husband.satiety})')
+        print(Fore.LIGHTBLUE_EX + Style.BRIGHT + wife.name + f' (happiness: {wife.happiness}, {wife.satiety})')
+        print(house)
 
 
 if __name__ == "__main__":
