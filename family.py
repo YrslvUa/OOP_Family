@@ -68,9 +68,6 @@ class Husband(Person):
 
 class Wife:
 
-    def __init__(self, name):
-        self.name = name
-
     def __str__(self):
         return super().__str__()
 
